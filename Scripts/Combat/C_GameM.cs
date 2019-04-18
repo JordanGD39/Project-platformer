@@ -9,12 +9,12 @@ public class C_GameM : MonoBehaviour
     // Start is called before the first frame update
     void Start()
     {
-        GM = GameObject.Find("GameManager(Platformer)").GetComponent<GameM>();
+        GM = GameObject.Find("GameManagerP").GetComponent<GameM>();
     }
 
     // Update is called once per frame
     void Update()
     {
-
+        
     }
 }

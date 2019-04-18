@@ -22,6 +22,7 @@ public class Player : MonoBehaviour
 
     private Rigidbody2D rb;
     private Animator anim;
+    private Vector3 startPos;
 
     public GameObject HealthScript;
     public AudioManager aManager;
@@ -34,6 +35,8 @@ public class Player : MonoBehaviour
         anim = gameObject.GetComponent<Animator>();
         Health = HealthScript.GetComponent<GUIScript>();
         timer = 0.0f;
+
+        startPos = transform.position;
 
         aManager.StopPlaying("BattleMusic");
         aManager.Play("LevelMusic");
@@ -128,6 +131,7 @@ public class Player : MonoBehaviour
                 {
                     if (Input.GetButtonDown("Attack"))
                     {
+                        startPos = transform.position;
                         timer = 0;
                         attacking = true;
                         r_atk = true;
@@ -143,6 +147,7 @@ public class Player : MonoBehaviour
                 {
                     if (Input.GetButtonDown("Attack"))
                     {
+                        startPos = transform.position;
                         timer = 0;
                         attacking = true;
                         n_atk = true;
@@ -215,7 +220,13 @@ public class Player : MonoBehaviour
     }
     public void Oof()
     {
+        startPos = transform.position;
         anim.SetTrigger("Oof");
+    }
+
+    public void setPosAfterBattle()
+    {
+        transform.position = startPos;
     }
 
     void Die()

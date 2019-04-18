@@ -8,10 +8,13 @@ public class Enemy : MonoBehaviour
     public GameObject player;
     public GameObject block;
     public GameM GM;
+    public GameObject playerHitboxATK;
+    public GameObject canvas;
     public Collider2D playerATK;
     public FirstTurn ftUI;
-    public Canvas canvas;
     public Animator anim;
+
+    public BoxCollider2D playerHitBox;
 
     private Player playerScript;
 
@@ -30,6 +33,8 @@ public class Enemy : MonoBehaviour
     public bool slow = false;
     public bool ride = false;
 
+    public int enemyNumber = 0;
+
     public enum movementState
     {
         LEFT,
@@ -43,10 +48,15 @@ public class Enemy : MonoBehaviour
     // Start is called before the first frame update
     void Start()
     {
+        player = GameObject.FindGameObjectWithTag("Player");
         rb = gameObject.GetComponent<Rigidbody2D>();
         playerScript = player.GetComponent<Player>();
-        GM = GameObject.Find("GameManager(Platformer)").GetComponent<GameM>();
+        GM = GameObject.FindGameObjectWithTag("GameManager").GetComponent<GameM>();
+        playerHitboxATK = GameObject.FindGameObjectWithTag("PlayerHitBox");
+        playerATK = playerHitboxATK.GetComponent<BoxCollider2D>();
+        canvas = GameObject.FindGameObjectWithTag("Canvas");
         ftUI = canvas.GetComponent<FirstTurn>();
+        playerHitBox = player.GetComponent<BoxCollider2D>();
     }
 
     private void Search()
@@ -78,6 +88,7 @@ public class Enemy : MonoBehaviour
             }
         }
 
+
         RaycastHit2D hit = Physics2D.Raycast(block.transform.position, -Vector2.up, 10);
         distance = (transform.position - player.transform.position).magnitude;
 
@@ -94,6 +105,7 @@ public class Enemy : MonoBehaviour
                 {
                     anim.SetInteger("Riding", 0);
                     ride = false;
+                    transform.position += Vector3.right * 10 * Time.deltaTime;
                     currentState = movementState.RIGHT;
                 }
                 transform.localScale = new Vector3(-0.5f, 0.5f, 1);
@@ -109,6 +121,7 @@ public class Enemy : MonoBehaviour
                 {
                     anim.SetInteger("Riding", 0);
                     ride = false;
+                    transform.position += -Vector3.right * 10 * Time.deltaTime;
                     currentState = movementState.LEFT;
                 }
                 transform.localScale = new Vector3(0.5f, 0.5f, 1);
@@ -167,8 +180,6 @@ public class Enemy : MonoBehaviour
                     }
                 }
                 break;
-            default:
-                break;
         }
 
         if (hit.collider != null)
@@ -208,6 +219,7 @@ public class Enemy : MonoBehaviour
         {
             GM.firstTurn = false;
             uTimer = 0;
+            playerHitBox.enabled = false;
             player.SendMessage("Oof");
             Slow();
         }
@@ -215,7 +227,6 @@ public class Enemy : MonoBehaviour
 
     public void Damage()
     {
-        Debug.Log("OOF");
         GM.firstTurn = true;
         uTimer = 0;
         ftUI.go = true;
@@ -224,6 +235,7 @@ public class Enemy : MonoBehaviour
 
     public void Slow()
     {
+        GM.enemyNumber = enemyNumber;
         Debug.Log("Slomo");
         Time.timeScale = 0.1f;
         slow = true;

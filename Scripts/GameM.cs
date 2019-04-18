@@ -6,9 +6,22 @@ public class GameM : MonoBehaviour
 {
 
     public bool firstTurn = false;
+    public int enemyNumber = 0;
+
+    public static GameM instance;
+
 
     void Awake()
     {
+        if (instance == null)
+        {
+            instance = this;
+        }
+        else
+        {
+            Destroy(gameObject);
+            return;
+        }
         DontDestroyOnLoad(gameObject);
     }
 
