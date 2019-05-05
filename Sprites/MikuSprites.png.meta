@@ -70,6 +70,12 @@ TextureImporter:
     21300130: MikuSprites_65
     21300132: MikuSprites_66
     21300134: MikuSprites_67
+    21300136: MikuSprites_68
+    21300138: MikuSprites_69
+    21300140: MikuSprites_70
+    21300142: MikuSprites_71
+    21300144: MikuSprites_72
+    21300146: MikuSprites_73
   externalObjects: {}
   serializedVersion: 9
   mipmaps:
@@ -1495,8 +1501,88 @@ TextureImporter:
       name: MikuSprites_67
       rect:
         serializedVersion: 2
+        x: 926
+        y: 286
+        width: 61
+        height: 65
+      alignment: 9
+      pivot: {x: 0.39155653, y: 0.51130795}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: d554982f900627d4d9cc3cf166504252
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: MikuSprites_68
+      rect:
+        serializedVersion: 2
+        x: 791
+        y: 285
+        width: 62
+        height: 65
+      alignment: 9
+      pivot: {x: 0.4288704, y: 0.5056542}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 318a28767475069429211eb01c536766
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: MikuSprites_69
+      rect:
+        serializedVersion: 2
+        x: 857
+        y: 285
+        width: 63
+        height: 65
+      alignment: 9
+      pivot: {x: 0.39499918, y: 0.51130795}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: d1c83389aa38dc34e94b996dc4226683
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: MikuSprites_70
+      rect:
+        serializedVersion: 2
+        x: 992
+        y: 285
+        width: 59
+        height: 65
+      alignment: 9
+      pivot: {x: 0.42525366, y: 0.5056542}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: cf0fa8cf900b70b4bb2278f8f96da2ed
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: MikuSprites_71
+      rect:
+        serializedVersion: 2
         x: 951
-        y: 275
+        y: 189
         width: 19
         height: 18
       alignment: 0
@@ -1506,7 +1592,47 @@ TextureImporter:
       physicsShape: []
       tessellationDetail: 0
       bones: []
-      spriteID: d554982f900627d4d9cc3cf166504252
+      spriteID: c39573e95c5657c45abd25c6287d721f
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: MikuSprites_72
+      rect:
+        serializedVersion: 2
+        x: 339
+        y: 102
+        width: 68
+        height: 79
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 036c786e821e1d14389417e364ff003c
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: MikuSprites_73
+      rect:
+        serializedVersion: 2
+        x: 417
+        y: 103
+        width: 68
+        height: 79
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: e1d5ee7beb3e0844cb1e9f449b90605b
       vertices: []
       indices: 
       edges: []
