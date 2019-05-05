@@ -10,6 +10,8 @@ public class Enemy : MonoBehaviour
     public GameM GM;
     public GameObject playerHitboxATK;
     public GameObject canvas;
+    public GameObject spawnPoint;
+    public GameObject electroBall;
     public Collider2D playerATK;
     public FirstTurn ftUI;
     public Animator anim;
@@ -25,13 +27,17 @@ public class Enemy : MonoBehaviour
     public float maxSpeed = 4f;
     public float jumpForce = 300f;
     public float dir = 1f;
-    public float timer;
+    public float timer = 0;
     public float uTimer;
+
+    public int level = 1;
 
     public bool grounded;
     public bool jumpReady = true;
     public bool slow = false;
     public bool ride = false;
+    public bool shoot = true;
+    public bool sleeping = false;
 
     public int enemyNumber = 0;
 
@@ -40,10 +46,10 @@ public class Enemy : MonoBehaviour
         LEFT,
         RIGHT,
         FOLLOW,
-        STOP
+        SLEEP
     };
 
-    movementState currentState;
+    public movementState currentState;
 
     // Start is called before the first frame update
     void Start()
@@ -95,90 +101,120 @@ public class Enemy : MonoBehaviour
         switch (currentState)
         {
             case movementState.LEFT:
-                if (hit.collider != null)
+                if (!sleeping)
                 {
-                    anim.SetInteger("Riding", 1);
-                    ride = true;
-                    dir = -1f;
+                    if (hit.collider != null)
+                    {
+                        anim.SetInteger("Riding", 1);
+                        ride = true;
+                        dir = -1f;
+                    }
+                    else if (hit.collider == null)
+                    {
+                        anim.SetInteger("Riding", 0);
+                        ride = false;
+                        transform.position += Vector3.right * 10 * Time.deltaTime;
+                        currentState = movementState.RIGHT;
+                    }
+                    transform.localScale = new Vector3(-0.5f, 0.5f, 1);
                 }
-                else if(hit.collider == null)
-                {
-                    anim.SetInteger("Riding", 0);
-                    ride = false;
-                    transform.position += Vector3.right * 10 * Time.deltaTime;
-                    currentState = movementState.RIGHT;
-                }
-                transform.localScale = new Vector3(-0.5f, 0.5f, 1);
                 break;
             case movementState.RIGHT:
-                if (hit.collider != null)
+                if (!sleeping)
                 {
-                    anim.SetInteger("Riding", 1);
-                    ride = true;
-                    dir = 1f;
-                }
-                else if (hit.collider == null)
-                {
-                    anim.SetInteger("Riding", 0);
-                    ride = false;
-                    transform.position += -Vector3.right * 10 * Time.deltaTime;
-                    currentState = movementState.LEFT;
-                }
-                transform.localScale = new Vector3(0.5f, 0.5f, 1);
-                break;
-            case movementState.FOLLOW:
-
-                if (player.transform.position.x > transform.position.x)
-                {
-                    transform.localScale = new Vector3(0.5f, 0.5f, 1);
                     if (hit.collider != null)
                     {
                         anim.SetInteger("Riding", 1);
                         ride = true;
                         dir = 1f;
                     }
-                    if (hit.collider == null)
+                    else if (hit.collider == null)
                     {
                         anim.SetInteger("Riding", 0);
                         ride = false;
+                        transform.position += -Vector3.right * 10 * Time.deltaTime;
+                        currentState = movementState.LEFT;
                     }
+                    transform.localScale = new Vector3(0.5f, 0.5f, 1);
                 }
-                if (player.transform.position.x < transform.position.x)
+                break;
+            case movementState.FOLLOW:
+                if (!sleeping)
                 {
-                    if(hit.collider != null)
+                    if (player.transform.position.x > transform.position.x)
                     {
-                        anim.SetInteger("Riding", 1);
-                        ride = true;
-                        dir = -1f;
-                    }
-                    transform.localScale = new Vector3(-0.5f, 0.5f, 1);
-                    if (hit.collider == null)
-                    {
-                        anim.SetInteger("Riding", 0);
-                        ride = false;
-                    }
-                }
-
-                if (player.transform.position.y > transform.position.y + 2)
-                {
-                    if (grounded)
-                    {
-                        if (jumpReady)
+                        transform.localScale = new Vector3(0.5f, 0.5f, 1);
+                        if (hit.collider != null)
                         {
-                            anim.SetInteger("Riding", 3);
-                            anim.SetTrigger("Jumping");
-                            jumpReady = false;
-                            rb.AddForce(Vector2.up * jumpForce);
+                            anim.SetInteger("Riding", 1);
+                            ride = true;
+                            dir = 1f;
+                        }
+                        if (hit.collider == null)
+                        {
+                            anim.SetInteger("Riding", 0);
+                            rb.velocity = new Vector2(0, rb.velocity.y);
+                            ride = false;
+                        }
+                    }
+                    if (player.transform.position.x < transform.position.x)
+                    {
+                        if (hit.collider != null)
+                        {
+                            anim.SetInteger("Riding", 1);
+                            ride = true;
+                            dir = -1f;
+                        }
+                        transform.localScale = new Vector3(-0.5f, 0.5f, 1);
+                        if (hit.collider == null)
+                        {
+                            anim.SetInteger("Riding", 0);
+                            rb.velocity = new Vector2(0, rb.velocity.y);
+                            ride = false;
+                        }
+                    }
+
+                    if (player.transform.position.y > transform.position.y + 1)
+                    {
+                        if (grounded)
+                        {
+                            if (jumpReady)
+                            {
+                                anim.SetInteger("Riding", 3);
+                                anim.SetTrigger("Jumping");
+                                jumpReady = false;
+                                rb.AddForce(Vector2.up * jumpForce);
+                            }
+                        }
+                    }
+                    else
+                    {
+                        if (grounded)
+                        {
+                            jumpReady = true;
+                        }
+                    }
+                    if (shoot && !sleeping)
+                    {
+                        if (timer >= 5)
+                        {
+                            GameObject projectile = Instantiate(electroBall, spawnPoint.transform.position, spawnPoint.transform.rotation);
+                            if (transform.localScale.x == 0.5f)
+                            {
+                                projectile.GetComponent<Projectile>().travelSpeed = 6;
+                            }
+                            if (transform.localScale.x == -0.5f)
+                            {
+                                projectile.GetComponent<Projectile>().travelSpeed = -6;
+                            }
+                            Destroy(projectile, 5f);
+                            timer = 0;
                         }
                     }
                 }
-                else
-                {
-                    if (grounded)
-                    {
-                        jumpReady = true;
-                    }
-                }
+                break;
+            case movementState.SLEEP:
+                anim.SetInteger("Riding", 9);
                 break;
         }
 
@@ -215,12 +251,13 @@ public class Enemy : MonoBehaviour
 
     void OnCollisionEnter2D(Collision2D collision)
     {
-        if (collision.gameObject.CompareTag("Player"))
+        if (collision.gameObject.CompareTag("Player") && !sleeping)
         {
             GM.firstTurn = false;
             uTimer = 0;
             playerHitBox.enabled = false;
-            player.SendMessage("Oof");
+            playerScript.Oof();
+            player.GetComponent<Rigidbody2D>().gravityScale = 0;
             Slow();
         }
     }
@@ -230,12 +267,14 @@ public class Enemy : MonoBehaviour
         GM.firstTurn = true;
         uTimer = 0;
         ftUI.go = true;
+        player.GetComponent<Rigidbody2D>().gravityScale = 0;
         Slow();
     }
 
     public void Slow()
     {
         GM.enemyNumber = enemyNumber;
+        GM.enemyLevel = level;
         Debug.Log("Slomo");
         Time.timeScale = 0.1f;
         slow = true;

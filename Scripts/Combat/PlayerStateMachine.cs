@@ -16,8 +16,9 @@ public class PlayerStateMachine : MonoBehaviour
     public GameObject pointer;
     public GameObject hpTextBar;
     public GameObject spTextBar;
+    public GameObject popupDamage;
 
-    private Vector3 startPos;
+    public Vector3 startPos;
 
     public enum TurnState
     {
@@ -37,7 +38,7 @@ public class PlayerStateMachine : MonoBehaviour
     public float curCooldown = 0f;
     public float maxCooldown = 10f;
     public float animSpeed = 10f;
-    public float attackDistance = 1.5f;
+    public float attackDistance = 1f;
     public float timer = 0f;
 
     public bool actionStarted = false;
@@ -45,6 +46,7 @@ public class PlayerStateMachine : MonoBehaviour
     public bool oof = false;
 
     public int animState = 0;
+    public int defending = 0;
 
     // Start is called before the first frame update
     void Start()
@@ -72,9 +74,11 @@ public class PlayerStateMachine : MonoBehaviour
     void Update()
     {
         timer += Time.deltaTime;
-
-        hpText.text = "HP: " + player.currHP + "/" + player.maxHP;
-        spText.text = "SP: " + player.currSP + "/" + player.maxSP;
+        if (!BSM.lost)
+        {
+            hpText.text = "HP: " + player.currHP + "/" + player.maxHP;
+            spText.text = "SP: " + player.currSP + "/" + player.maxSP;
+        }
         switch (currentState)
         {
             case TurnState.PROCESSING:
@@ -90,6 +94,12 @@ public class PlayerStateMachine : MonoBehaviour
             case TurnState.WAITING:
                 BSM.EnemyUpdateProgressBar = false;
                 BSM.PlayerUpdateProgressBar = false;
+                if (defending >= 1)
+                {
+                    player.currDEF = player.maxDEF;
+                    player.currRES = player.maxRES;
+                    defending = 0;
+                }
                 break;
             case TurnState.ACTION:
                 StartCoroutine(TimeForAction());
@@ -97,6 +107,12 @@ public class PlayerStateMachine : MonoBehaviour
             case TurnState.DEAD:
                 if (dead)
                 {
+                    if (player.currHP > 0)
+                    {
+                        currentState = TurnState.PROCESSING;
+                        BSM.CharsInBattle.Add(gameObject);
+                        dead = false;
+                    }
                     return;
                 }
                 else
@@ -127,6 +143,7 @@ public class PlayerStateMachine : MonoBehaviour
         {
             if (timer >= 1f)
             {
+                anim.SetBool("Oof", false);
                 anim.SetInteger("State", 0);
                 oof = false;
             }
@@ -155,25 +172,41 @@ public class PlayerStateMachine : MonoBehaviour
         BSM.EnemyUpdateProgressBar = true;
         BSM.PlayerUpdateProgressBar = true;
         //go to hero
-        Vector3 enemyPos = new Vector3(EnemyToAttack.transform.position.x - attackDistance, EnemyToAttack.transform.position.y, EnemyToAttack.transform.position.z);
-        transform.localScale = new Vector3(0.4f, 0.4f, 1);
-        anim.SetInteger("State", 1);
-        while (MoveTowardsEnemy(enemyPos))
+        if (!BSM.attributeTime)
         {
-            yield return null;
-        }
+            Vector3 enemyPos = new Vector3(EnemyToAttack.transform.position.x - attackDistance, EnemyToAttack.transform.position.y, EnemyToAttack.transform.position.z);
+            transform.localScale = new Vector3(0.4f, 0.4f, 1);
+            anim.SetInteger("State", 1);
+            while (MoveTowardsEnemy(enemyPos))
+            {
+                yield return null;
+            }
 
-        anim.SetInteger("State", animState);//animation state
-        yield return new WaitForSeconds(1f);
-        //attack
+            DoDamage();
 
-        //go back to startpos
-        Vector3 firstPos = startPos;
-        transform.localScale = new Vector3(-0.4f, 0.4f, 1);
-        anim.SetInteger("State", 1);//Walk
-        while (MoveTowardsStart(firstPos))
-        {
-            yield return null;
+
+            anim.SetInteger("State", animState);//animation state
+            if (player.name == "Len")
+            {
+                Rigidbody2D rb = gameObject.AddComponent<Rigidbody2D>() as Rigidbody2D;
+
+                rb.AddForce(Vector2.up * 200);
+
+                yield return new WaitForSeconds(0.8f);
+
+                Destroy(rb);
+            }
+            yield return new WaitForSeconds(1f);
+            //attack
+
+            //go back to startpos
+            Vector3 firstPos = startPos;
+            transform.localScale = new Vector3(-0.4f, 0.4f, 1);
+            anim.SetInteger("State", 1);//Walk
+            while (MoveTowardsStart(firstPos))
+            {
+                yield return null;
+            }
         }
 
         //remove attack
@@ -182,11 +215,13 @@ public class PlayerStateMachine : MonoBehaviour
         BSM.battleStates = BattleStateMachine.PerformAction.WAIT;
         //end coroutine
         actionStarted = false;
-        //reset enemy state
+        //reset player state
         anim.SetInteger("State", 0);
+
         transform.localScale = new Vector3(0.4f, 0.4f, 1);
         curCooldown = 0;
         currentState = TurnState.PROCESSING;
+
     }
 
     private bool MoveTowardsEnemy(Vector3 target)
@@ -199,27 +234,69 @@ public class PlayerStateMachine : MonoBehaviour
         return target != (transform.position = Vector3.MoveTowards(transform.position, target, animSpeed * Time.deltaTime));
     }
 
+    void DoDamage()
+    {
+        int calcDamageMagical = 0;
+        int calcDamagePhysical = 0;
+        if (BSM.PerformList[0].chosenAttack.physicalDamage > 0)
+        {
+            calcDamagePhysical = player.currATK + BSM.PerformList[0].chosenAttack.physicalDamage;
+        }
+        if (BSM.PerformList[0].chosenAttack.magicalDamage > 0)
+        {
+            calcDamageMagical = player.currATK + BSM.PerformList[0].chosenAttack.magicalDamage;
+        }
+        EnemyToAttack.GetComponent<EnemyStateMachine>().TakeDamage(calcDamagePhysical, calcDamageMagical);
+    }
+
     public void TakeDamage(int damage, int magicalDamage)
     {
-        int calcDamage = damage - player.currDEF;
-        int calcMdamage = magicalDamage - player.currRES;
 
-        if (calcDamage < 0)
+        float chance = Random.Range(0, 101);
+
+        if (player.currLUK < chance)
         {
-            calcDamage = 0;
+            int calcDamage = damage - player.currDEF;
+            int calcMdamage = magicalDamage - player.currRES;
+
+            if (calcDamage < 0)
+            {
+                calcDamage = 0;
+            }
+            if (calcMdamage < 0)
+            {
+                calcMdamage = 0;
+            }
+
+            Debug.Log(calcDamage);
+
+            if ((calcDamage + calcMdamage) > 0)
+            {
+                anim.SetTrigger("Oof");
+                anim.SetInteger("State", -1);
+            }
+            timer = 0f;
+            oof = true;
+            player.currHP -= calcDamage + calcMdamage;
+
+            int damageFinal = calcDamage + calcMdamage;
+
+            GameObject clone = Instantiate(popupDamage, new Vector3(transform.position.x, transform.position.y - 0.3f, transform.position.z), transform.rotation, GameObject.FindGameObjectWithTag("Canvas").transform);
+            clone.transform.GetChild(0).gameObject.GetComponent<Text>().text = "" + damageFinal;
+
+            Destroy(clone, 1f);
         }
-        if (calcMdamage < 0)
+        else if (player.currLUK > chance)
         {
-            calcMdamage = 0;
+            anim.SetInteger("State", -3);
+            timer = 0f;
+            oof = true;
+
+            GameObject clone = Instantiate(popupDamage, new Vector3(transform.position.x, transform.position.y - 0.3f, transform.position.z), transform.rotation, GameObject.FindGameObjectWithTag("Canvas").transform);
+            clone.transform.GetChild(0).gameObject.GetComponent<Text>().text = "Miss";
+
+            Destroy(clone, 1f);
         }
-
-        Debug.Log(calcDamage);
-
-        anim.SetTrigger("Oof");
-        anim.SetInteger("State", -1);
-        timer = 0f;
-        oof = true;
-        player.currHP -= calcDamage + calcMdamage;
         if (player.currHP <= 0)
         {
             player.currHP = 0;

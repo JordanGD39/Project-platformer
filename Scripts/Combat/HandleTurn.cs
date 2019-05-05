@@ -11,4 +11,5 @@ public class HandleTurn
     public GameObject TargetGO;
 
     public BaseAttack chosenAttack;
+    public BaseAttributeUp chosenAttribute;
 }

@@ -9,9 +9,11 @@ public class EnemyStateMachine : MonoBehaviour
     public BattleStateMachine BSM;
     public GameM GM;
 
-    private Vector3 startPos;
+    public Vector3 startPos;
 
     public GameObject PlayerToAttack;
+    public GameObject popupDamage;
+    public GameObject electroBall;
 
     public enum TurnState
     {
@@ -27,8 +29,13 @@ public class EnemyStateMachine : MonoBehaviour
     public float curCooldown = 0f;
     public float maxCooldown = 10f;
     public float animSpeed = 10f;
+    public float timer = 0;
+    public float attackDistance = 1.3f;
 
     public int ridingState = 4;
+
+    public bool oof = false;
+    public bool dead = false;
 
     private bool actionStarted = false;
 
@@ -55,6 +62,9 @@ public class EnemyStateMachine : MonoBehaviour
     // Update is called once per frame
     void Update()
     {
+
+        timer += Time.deltaTime;
+        
         switch (currenState)
         {
             case TurnState.PROCESSING:
@@ -73,14 +83,43 @@ public class EnemyStateMachine : MonoBehaviour
                 StartCoroutine(TimeForAction());
                 break;
             case TurnState.DEAD:
+                if (dead)
+                {
+                    return;
+                }
+                else
+                {
+                    anim.SetBool("Dead", true);
+
+                    gameObject.tag = "DeadEnemy";
+                    BSM.EnemiesInBattle.Remove(gameObject);
+                    BSM.DeadEnemiesInBattle.Add(gameObject);
+                    for (int i = 0; i < BSM.PerformList.Count; i++)
+                    {
+                        if (BSM.PerformList[i].AttakerGO == gameObject)
+                        {
+                            BSM.PerformList.Remove(BSM.PerformList[i]);
+                        }
+                    }
+                    dead = true;
+                }
                 break;
             default:
                 break;
         }
+
+        if (oof)
+        {
+            if (timer >= 1f)
+            {
+                anim.SetInteger("Riding", 0);
+                oof = false;
+            }
+        }
     }
     void UpdateProgressBar()
     {
-        maxCooldown = 8 - (enemy.currSPD / 10);
+        maxCooldown = 7 - (enemy.currSPD / 10);
         curCooldown += Time.deltaTime;
         if (curCooldown >= maxCooldown)
         {
@@ -100,6 +139,7 @@ public class EnemyStateMachine : MonoBehaviour
             int num = Random.Range(0, enemy.attacks.Count);
             theAttack.chosenAttack = enemy.attacks[num];
             ridingState = theAttack.chosenAttack.animState;
+            attackDistance = theAttack.chosenAttack.attackDistance;
             Debug.Log(gameObject.name + " did " + theAttack.chosenAttack.name + " and did " + theAttack.chosenAttack.physicalDamage + " damage and magical " + theAttack.chosenAttack.magicalDamage);
             BSM.CollectActions(theAttack);
         }
@@ -117,14 +157,22 @@ public class EnemyStateMachine : MonoBehaviour
         BSM.EnemyUpdateProgressBar = false;
 
         //go to hero
-        Vector3 playerPos = new Vector3(PlayerToAttack.transform.position.x + 1.5f, PlayerToAttack.transform.position.y, PlayerToAttack.transform.position.z);
+        Vector3 playerPos = new Vector3(PlayerToAttack.transform.position.x + attackDistance, PlayerToAttack.transform.position.y, PlayerToAttack.transform.position.z);
         anim.SetInteger("Riding", 1);
         while (MoveTowardsEnemy(playerPos))
         {
             yield return null;
         }
+        if (BSM.PerformList[0].chosenAttack.magicalDamage > 0)
+        {
+            GameObject clone = Instantiate(electroBall, transform.position, transform.rotation);
+            clone.GetComponent<Projectile>().travelSpeed = -6f;
+            Destroy(clone, 4f);
 
+            yield return new WaitForSeconds(1.4f);
+        }
         DoDamage();
+
         anim.SetInteger("Riding", ridingState);
         yield return new WaitForSeconds(1f);
         //attack
@@ -171,9 +219,58 @@ public class EnemyStateMachine : MonoBehaviour
         }
         if (BSM.PerformList[0].chosenAttack.magicalDamage > 0)
         {
-            Debug.Log("Going in here for no reason");
             calcDamageMagical = enemy.currATK + BSM.PerformList[0].chosenAttack.magicalDamage;
         }
         PlayerToAttack.GetComponent<PlayerStateMachine>().TakeDamage(calcDamagePhysical, calcDamageMagical);
+    }
+
+    public void TakeDamage(int damage, int magicalDamage)
+    {
+        float chance = Random.Range(0, 101);
+
+        if (enemy.currLUK < chance)
+        {
+            int calcDamage = damage - enemy.currDEF;
+            int calcMdamage = magicalDamage - enemy.currRES;
+
+            if (calcDamage < 0)
+            {
+                calcDamage = 0;
+            }
+            if (calcMdamage < 0)
+            {
+                calcMdamage = 0;
+            }
+
+            Debug.Log(calcDamage);
+
+            anim.SetInteger("Riding", -1);
+            timer = 0f;
+            oof = true;
+            enemy.currHP -= calcDamage + calcMdamage;
+
+            int damageFinal = calcDamage + calcMdamage;
+
+            GameObject clone = Instantiate(popupDamage, new Vector3(transform.position.x,transform.position.y - 0.3f, transform.position.z), transform.rotation, GameObject.FindGameObjectWithTag("Canvas").transform);
+            clone.transform.GetChild(0).gameObject.GetComponent<UnityEngine.UI.Text>().text = "" + damageFinal;
+
+            Destroy(clone, 1f);
+        }
+        else if (enemy.currLUK > chance)
+        {
+            anim.SetInteger("Riding", -3);
+            oof = true;
+
+            GameObject clone = Instantiate(popupDamage, new Vector3(transform.position.x, transform.position.y - 0.3f, transform.position.z), transform.rotation, GameObject.FindGameObjectWithTag("Canvas").transform);
+            clone.transform.GetChild(0).gameObject.GetComponent<UnityEngine.UI.Text>().text = "Miss";
+
+            Destroy(clone, 1f);
+        }
+        if (enemy.currHP <= 0)
+        {
+            enemy.currHP = 0;
+            currenState = TurnState.DEAD;
+        }
+        Debug.Log(enemy.currHP);
     }
 }

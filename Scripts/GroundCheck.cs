@@ -16,16 +16,25 @@ public class GroundCheck : MonoBehaviour
     // Update is called once per frame
     void OnTriggerEnter2D(Collider2D col)
     {
-        player.grounded = true;
+        if (!col.isTrigger)
+        {
+            player.grounded = true;
+        }
     }
 
     void OnTriggerStay2D(Collider2D col)
     {
-        player.grounded = true;
+        if (!col.isTrigger)
+        {
+            player.grounded = true;
+        }
     }
     
     void OnTriggerExit2D(Collider2D col)
     {
-        player.grounded = false;
+        if (!col.isTrigger)
+        {
+            player.grounded = false;
+        }
     }
 }

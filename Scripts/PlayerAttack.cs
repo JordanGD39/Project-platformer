@@ -4,7 +4,7 @@ using UnityEngine;
 
 public class PlayerAttack : MonoBehaviour
 {
-    private bool attacking;
+    private bool attacking = true;
 
     public Player player;
     public Collider2D col;
@@ -20,31 +20,45 @@ public class PlayerAttack : MonoBehaviour
     // Update is called once per frame
     void Update()
     {
-        if(player.r_atk)
+        if (!player.oof)
         {
-            timer += Time.deltaTime;
-            if (timer >= 0.4f)
+            if (player.r_atk)
             {
-                col.enabled = true;
+                if (attacking)
+                {
+                    timer = 0;
+                    attacking = false;
+                }
+                timer += Time.deltaTime;
+                if (timer >= 0.55f)
+                {   
+                    col.enabled = true;
+                }
+                if (timer >= 1)
+                {
+                    col.enabled = false;
+                    attacking = true;
+                }
             }
-            if (timer >= 1)
-            {
-                timer = 0;
-                col.enabled = false;
-            }
-        }
 
-        if (player.n_atk)
-        {
-            timer += Time.deltaTime;
-            if (timer >= 0.1f)
+            if (player.n_atk)
             {
-                col.enabled = true;
-            }
-            if (timer >= 0.2f)
-            {
-                timer = 0;
-                col.enabled = false;
+                if (attacking)
+                {
+                    timer = 0;
+                    attacking = false;
+                }
+
+                timer += Time.deltaTime;
+                if (timer >= 0.18f)
+                {
+                    col.enabled = true;
+                }
+                if (timer >= 0.2f)
+                {
+                    col.enabled = false;
+                    attacking = true;
+                }
             }
         }
     }

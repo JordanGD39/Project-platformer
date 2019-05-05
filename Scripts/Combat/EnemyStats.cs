@@ -32,5 +32,7 @@ public class EnemyStats
     public int maxLUK;
     public int currLUK;
 
+    public int expEarn;
+
     public List<BaseAttack> attacks = new List<BaseAttack>();
 }

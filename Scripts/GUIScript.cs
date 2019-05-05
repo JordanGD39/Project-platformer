@@ -7,12 +7,17 @@ public class GUIScript : MonoBehaviour
     public Texture heart;
     public int amountOfHearts = 3;
     public int newLine = 0;
-    public int health = 3;
+    public float health = 3;
 
 
     // Start is called before the first frame update
     void Start()
     {
+        float tempHP = GameObject.FindGameObjectWithTag("GameManager").GetComponent<GameM>().mikuHP / 10;
+
+        health = tempHP;
+
+        Mathf.Ceil(health);
     }
 
     // Update is called once per frame

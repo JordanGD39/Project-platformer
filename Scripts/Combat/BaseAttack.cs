@@ -21,4 +21,5 @@ public class BaseAttack : MonoBehaviour
     public int magicalDamage;//atk - res
     public int cost;// currSP - cost
     public int animState;
+    public float attackDistance;
 }
