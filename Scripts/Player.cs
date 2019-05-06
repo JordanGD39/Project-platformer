@@ -145,9 +145,17 @@ public class Player : MonoBehaviour
                     {
                         if (Input.GetButtonDown("Attack"))
                         {
-                            rb.velocity = new Vector2(0, 0);
                             anim.SetTrigger("Singing");
                             GameObject clone = Instantiate(musicNote, spawnPoint.transform.position, transform.rotation);
+                            rb.velocity = new Vector2(0, 0);
+                            if (transform.localScale == new Vector3(0.5f, 0.5f, 1))
+                            {
+                                clone.GetComponent<SleepProjectile>().travelSpeed = 6f;
+                            }
+                            if (transform.localScale == new Vector3(-0.5f, 0.5f, 1))
+                            {
+                                clone.GetComponent<SleepProjectile>().travelSpeed = -6f;
+                            }
                             Destroy(clone, 6f);
                         }
 
@@ -464,6 +472,7 @@ public class Player : MonoBehaviour
         {
             if (timer >= 3)
             {
+                GM.mikuHP = GM.mikuMaxHP;
                 SceneManager.LoadScene("GameOver");
             }
         }

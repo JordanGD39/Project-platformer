@@ -19,7 +19,7 @@ public class Projectile : MonoBehaviour
     // Update is called once per frame
     void OnTriggerEnter2D(Collider2D collision)
     {
-        if (!collision.CompareTag("Player") && !collision.CompareTag("Enemy") && !collision.CompareTag("SleepBox"))
+        if (!collision.CompareTag("Player") && !collision.CompareTag("Enemy") && !collision.CompareTag("SleepBox") && !collision.CompareTag("GroundCheck"))
         {
             Debug.Log(collision);
             Destroy(gameObject);

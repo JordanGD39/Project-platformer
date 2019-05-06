@@ -11,7 +11,7 @@ public class SleepProjectile : MonoBehaviour
     void Start()
     {
 
-        GetComponent<Rigidbody2D>().velocity = new Vector2(1, 0.2f) * travelSpeed;
+        GetComponent<Rigidbody2D>().velocity = new Vector2(1 * travelSpeed, 1f);
     }
 
     // Update is called once per frame
@@ -19,6 +19,7 @@ public class SleepProjectile : MonoBehaviour
     {
         if (!collision.CompareTag("Player") && !collision.CompareTag("Enemy") && !collision.CompareTag("GroundCheck"))
         {
+            Debug.Log(collision);
             Destroy(gameObject);
         }
         else if (collision.CompareTag("Enemy"))
