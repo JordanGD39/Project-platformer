@@ -111,6 +111,8 @@ public class PlayerStateMachine : MonoBehaviour
                     {
                         currentState = TurnState.PROCESSING;
                         BSM.CharsInBattle.Add(gameObject);
+                        anim.SetBool("Dead", false);
+                        anim.SetInteger("State", 0);
                         dead = false;
                     }
                     return;
@@ -139,6 +141,14 @@ public class PlayerStateMachine : MonoBehaviour
             default:
                 break;
         }
+
+        if (oof && dead)
+        {
+            anim.SetBool("Oof", false);
+            anim.SetBool("Dead", true);
+            oof = false;
+        }
+
         if (oof)
         {
             if (timer >= 1f)
@@ -163,6 +173,7 @@ public class PlayerStateMachine : MonoBehaviour
 
     private IEnumerator TimeForAction()
     {
+
         if (actionStarted)
         {
             yield break;

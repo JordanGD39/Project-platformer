@@ -111,6 +111,8 @@ public class BattleStateMachine : MonoBehaviour
         SpecialPanel.SetActive(false);
         ItemPanel.SetActive(false);
 
+        EnemiesInBattle.Sort(SortByName);
+
         SetupBattle();
         SetStats();
     }
@@ -202,6 +204,7 @@ public class BattleStateMachine : MonoBehaviour
                         stopLeveling = false;
                         PlayerUpdateProgressBar = false;
                         WinPanel.SetActive(true);
+                        PlayWinMusic();
                         levelCharacter = 0;
                         ExpEarn();
                         stopLeveling = true;
@@ -284,8 +287,7 @@ public class BattleStateMachine : MonoBehaviour
         if (levelUp)
         {
             if (timer >= 3)
-            {
-                PlayWinMusic();
+            {                
                 ExpEarn();
                 LevelUp();
             }
@@ -449,9 +451,9 @@ public class BattleStateMachine : MonoBehaviour
             PlayerChoice.AttakerGO = CharsToManage[0];
             PlayerChoice.chosenAttribute = chosenAttribute;
 
-            for (int i = 0; i < CharsInBattle.Count; i++)
+            for (int i = 0; i < AllCharsInBattle.Count; i++)
             {
-                PlayerStateMachine playerStat = CharsInBattle[i].GetComponent<PlayerStateMachine>();
+                PlayerStateMachine playerStat = AllCharsInBattle[i].GetComponent<PlayerStateMachine>();
 
                 if (chosenAttribute.hpUp >= 1)
                 {
@@ -529,7 +531,7 @@ public class BattleStateMachine : MonoBehaviour
 
             for (int i = 0; i < AllCharsInBattle.Count; i++)
             {
-                PlayerStateMachine playerStat = CharsInBattle[i].GetComponent<PlayerStateMachine>();
+                PlayerStateMachine playerStat = AllCharsInBattle[i].GetComponent<PlayerStateMachine>();
 
                 playerStat.player.currHP += 20;
 
@@ -555,7 +557,7 @@ public class BattleStateMachine : MonoBehaviour
 
             for (int i = 0; i < AllCharsInBattle.Count; i++)
             {
-                PlayerStateMachine playerStat = CharsInBattle[i].GetComponent<PlayerStateMachine>();
+                PlayerStateMachine playerStat = AllCharsInBattle[i].GetComponent<PlayerStateMachine>();
 
                 playerStat.player.currSP += 10;
 
@@ -634,17 +636,18 @@ public class BattleStateMachine : MonoBehaviour
         {
             if (levelCharacter < CharsInBattle.Count)
             {
-                Debug.Log(levelCharacter);
-
-                PlayerStateMachine playerStat = CharsInBattle[levelCharacter].GetComponent<PlayerStateMachine>();
-
-                playerStat.player.exp += 100 * (DeadEnemiesInBattle.Count - 1 + GM.enemyLevel);
-                Debug.Log(playerStat.player.name);
-
                 for (int i = 0; i < CharsInBattle.Count; i++)
                 {
                     CharsInBattle[i].GetComponent<PlayerStateMachine>().anim.SetInteger("State", 4);
                 }
+
+                Debug.Log(levelCharacter);
+
+                PlayerStateMachine playerStat = CharsInBattle[levelCharacter].GetComponent<PlayerStateMachine>();
+
+
+                playerStat.player.exp += 100 * (DeadEnemiesInBattle.Count - 1 + GM.enemyLevel);
+                Debug.Log(playerStat.player.name);
 
                 if (playerStat.player.exp >= playerStat.player.expToLevel)
                 {
@@ -943,8 +946,8 @@ public class BattleStateMachine : MonoBehaviour
     void SetupBattle()
     {
         GameObject robot0 = EnemiesInBattle[0];
-        GameObject robot2 = EnemiesInBattle[1];
-        GameObject robot1 = EnemiesInBattle[2];
+        GameObject robot1 = EnemiesInBattle[1];
+        GameObject robot2 = EnemiesInBattle[2];
         switch (GM.enemyNumber)
         {
             case 1:
@@ -956,12 +959,12 @@ public class BattleStateMachine : MonoBehaviour
                 robot0.GetComponent<EnemyStateMachine>().startPos = new Vector2(6.83f, 1.38f);
                 break;
             case 2:
-                Destroy(robot1);
-                EnemiesInBattle.Remove(robot1);
+                Destroy(robot2);
+                EnemiesInBattle.Remove(robot2);
                 robot0.transform.position = new Vector2(6.83f, 2.25f);
                 robot0.GetComponent<EnemyStateMachine>().startPos = new Vector2(6.83f, 2.25f);
-                robot2.transform.position = new Vector2(6.83f, 0.41f);
-                robot2.GetComponent<EnemyStateMachine>().startPos = new Vector2(6.83f, 0.41f);
+                robot1.transform.position = new Vector2(6.83f, 0.41f);
+                robot1.GetComponent<EnemyStateMachine>().startPos = new Vector2(6.83f, 0.41f);
                 break;
         }
 
@@ -1042,5 +1045,10 @@ public class BattleStateMachine : MonoBehaviour
             aManager.Play("BattleWon");
             stopPlayingMusic = true; 
         }
+    }
+
+    private static int SortByName(GameObject o1, GameObject o2)
+    {
+        return o1.name.CompareTo(o2.name);
     }
 }
